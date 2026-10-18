@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="theme-color" content="#080b11" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Personalize your SpendWise experience." />
+    <title>Tell us about you | SpendWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell onboarding-shell">
+      <section class="auth-card onboarding-card" aria-labelledby="onboarding-title">
+        <header class="onboarding-header">
+          <a class="brand brand--compact" href="index.html" aria-label="SpendWise home">
+            <span class="brand__mark">
+              <svg viewBox="0 0 48 48" aria-hidden="true">
+                <path d="M11 12.5h17.5a8.5 8.5 0 0 1 0 17H19a5.5 5.5 0 0 0 0 11h18" />
+                <path d="M24 7v34" />
+              </svg>
+            </span>
+            <span>SpendWise</span>
+          </a>
+
+          <div class="step-status" aria-live="polite">
+            <span id="step-label">Step 1 of 3</span>
+            <div class="progress-track" aria-hidden="true">
+              <span id="progress-bar"></span>
+            </div>
+          </div>
+        </header>
+
+        <form id="profile-form" novalidate>
+          <fieldset class="onboarding-step is-active" data-step="1">
+            <legend class="sr-only">Choose your age range</legend>
+            <div class="hero-copy onboarding-copy">
+              <p class="eyebrow">A LITTLE ABOUT YOU</p>
+              <h1 id="onboarding-title">Let’s make SpendWise work for you.</h1>
+              <p>Choose the age range that fits you best. We’ll adjust examples and explanations.</p>
+            </div>
+
+            <div class="choice-grid choice-grid--two" role="radiogroup" aria-label="Age range">
+              <label class="choice-card">
+                <input type="radio" name="ageBand" value="10-12" />
+                <span>10–12</span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="ageBand" value="13-15" />
+                <span>13–15</span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="ageBand" value="16-17" />
+                <span>16–17</span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="ageBand" value="18+" />
+                <span>18+</span>
+              </label>
+            </div>
+            <p class="form-message" data-error="ageBand" role="alert"></p>
+          </fieldset>
+
+          <fieldset class="onboarding-step" data-step="2" hidden>
+            <legend class="sr-only">Choose your product interests</legend>
+            <div class="hero-copy onboarding-copy">
+              <p class="eyebrow">YOUR INTERESTS</p>
+              <h1>What are you curious about?</h1>
+              <p>Select up to three categories you would like to explore.</p>
+            </div>
+
+            <div class="chip-grid" aria-label="Product interests">
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Phones" /><span>Phones</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Laptops and tablets" /><span>Laptops &amp; tablets</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Gaming" /><span>Gaming</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Fashion" /><span>Fashion</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Transport" /><span>Transport</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Sports and hobbies" /><span>Sports &amp; hobbies</span></label>
+              <label class="choice-chip"><input type="checkbox" name="interests" value="Other" /><span>Other</span></label>
+            </div>
+            <p class="selection-count" id="interest-count">0 of 3 selected</p>
+            <p class="form-message" data-error="interests" role="alert"></p>
+          </fieldset>
+
+          <fieldset class="onboarding-step" data-step="3" hidden>
+            <legend class="sr-only">Choose your currency and goal</legend>
+            <div class="hero-copy onboarding-copy">
+              <p class="eyebrow">MAKE IT YOURS</p>
+              <h1>What should SpendWise help you with?</h1>
+              <p>Choose your currency and the main reason you’re here.</p>
+            </div>
+
+            <label for="currency">Your currency</label>
+            <select id="currency" name="currency">
+              <option value="INR">Indian Rupee (₹)</option>
+              <option value="USD">US Dollar ($)</option>
+              <option value="GBP">British Pound (£)</option>
+              <option value="EUR">Euro (€)</option>
+              <option value="AUD">Australian Dollar (A$)</option>
+              <option value="CAD">Canadian Dollar (C$)</option>
+            </select>
+
+            <div class="goal-group" role="radiogroup" aria-label="Primary goal">
+              <label class="choice-card choice-card--wide">
+                <input type="radio" name="primaryGoal" value="Understand prices" />
+                <span>Understand why products cost so much</span>
+              </label>
+              <label class="choice-card choice-card--wide">
+                <input type="radio" name="primaryGoal" value="Find alternatives" />
+                <span>Find affordable alternatives</span>
+              </label>
+              <label class="choice-card choice-card--wide">
+                <input type="radio" name="primaryGoal" value="Plan a purchase" />
+                <span>Plan for something I want to buy</span>
+              </label>
+              <label class="choice-card choice-card--wide">
+                <input type="radio" name="primaryGoal" value="Make better decisions" />
+                <span>Make better spending decisions</span>
+              </label>
+            </div>
+            <p class="form-message" data-error="primaryGoal" role="alert"></p>
+            <p class="privacy-callout">We use these choices to personalize examples. You can change them later.</p>
+          </fieldset>
+
+          <div class="onboarding-actions">
+            <button class="button button--quiet" id="back-button" type="button" hidden>Back</button>
+            <button class="button button--primary onboarding-next" id="next-button" type="button">Continue</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    <script src="onboarding.js"></script>
+      <script src="pwa.js" defer></script>
+  </body>
+</html>
+

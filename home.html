@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="theme-color" content="#080b11" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | SpendWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=7" />
+  </head>
+  <body class="dashboard-page">
+    <main class="app-shell dashboard-shell">
+      <section class="auth-card home-card" aria-labelledby="home-title">
+        <header class="dashboard-topbar">
+          <a class="brand dashboard-brand" href="home.html" aria-label="SpendWise home">
+            <span class="brand-mark" aria-hidden="true">
+              <span class="mark-stem"></span><span class="mark-top"></span><span class="mark-bottom"></span>
+            </span>
+            <span>SpendWise</span>
+          </a>
+          <a class="profile-button" href="profile.html" aria-label="View your profile"><span aria-hidden="true">S</span></a>
+        </header>
+
+        <section class="dashboard-hero">
+          <div>
+            <p class="eyebrow">YOUR DASHBOARD</p>
+            <h1 id="home-title">What are you curious about today?</h1>
+            <p class="home-copy">See what a product may cost to make, compare its retail price, and find a smarter fit for your budget.</p>
+          </div>
+          <p class="goal-pill" id="profile-summary">Your plan is ready</p>
+        </section>
+
+        <form class="product-search" id="product-search" novalidate>
+          <label class="sr-only" for="product-query">Enter a product to analyze</label>
+          <div class="search-control">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path></svg>
+            <input id="product-query" name="product" type="search" placeholder="Try “iPhone 15” or “gaming headphones”" autocomplete="off" />
+            <button class="primary-button search-button" type="submit">Analyze</button>
+          </div>
+          <div class="country-control">
+            <label for="search-country">Which country should we check prices for?
+              <select id="search-country" name="country" required>
+                <option value="" selected disabled>Select a country</option>
+                <option value="IN">India</option><option value="US">United States</option>
+                <option value="GB">United Kingdom</option><option value="CA">Canada</option>
+                <option value="AU">Australia</option><option value="DE">Germany</option>
+                <option value="FR">France</option><option value="JP">Japan</option>
+                <option value="CN">China</option><option value="SG">Singapore</option>
+                <option value="AE">United Arab Emirates</option><option value="BR">Brazil</option>
+                <option value="MX">Mexico</option><option value="KR">South Korea</option>
+                <option value="ZA">South Africa</option><option value="NL">Netherlands</option>
+                <option value="IT">Italy</option><option value="ES">Spain</option>
+                <option value="SE">Sweden</option><option value="NZ">New Zealand</option>
+              </select>
+            </label>
+            <span>Manufacturing and retail estimates will use this market.</span>
+          </div>
+          <p class="search-status" id="search-status" aria-live="polite"></p>
+        </form>
+
+        <section class="quick-section" aria-labelledby="quick-title">
+          <div class="section-heading">
+            <div><p class="section-kicker">START SOMEWHERE</p><h2 id="quick-title">Quick explore</h2></div>
+            <span>Choose a category</span>
+          </div>
+          <div class="interest-chips" id="interest-chips" aria-label="Suggested product categories"></div>
+        </section>
+
+        <div class="dashboard-grid">
+          <article class="dashboard-panel focus-panel">
+            <div class="panel-icon mint-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 3v18M16.5 7.5c0-1.7-1.6-3-4.5-3s-4.5 1.3-4.5 3 1.3 2.7 4.5 3.3 4.5 1.6 4.5 3.7-1.7 3.5-4.5 3.5-4.8-1.3-4.8-3.5"></path></svg>
+            </div>
+            <p class="panel-label">YOUR FOCUS</p>
+            <h2 id="goal-title">Spend with more confidence</h2>
+            <p id="goal-copy">Compare the real value of products before deciding what deserves your money.</p>
+            <div class="focus-meta"><span id="currency-copy">₹ INR</span><a href="profile.html">Edit preferences</a></div>
+          </article>
+
+          <article class="dashboard-panel insight-panel">
+            <div class="panel-icon violet-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M8.5 14.5C6.9 13.4 6 11.6 6 9.5a6 6 0 0 1 12 0c0 2.1-.9 3.9-2.5 5-.9.7-1.5 1.6-1.5 2.5h-4c0-.9-.6-1.8-1.5-2.5Z"></path></svg>
+            </div>
+            <p class="panel-label">MONEY INSIGHT</p>
+            <h2>Price is more than parts</h2>
+            <p>Retail prices can also include research, marketing, shipping, software, support, and profit.</p>
+            <a class="text-link" href="how-it-works.html">See how SpendWise explains it <span aria-hidden="true">→</span></a>
+          </article>
+        </div>
+
+        <section class="recent-section" id="recent-activity" aria-labelledby="recent-title">
+          <div class="section-heading">
+            <div><p class="section-kicker">PICK UP WHERE YOU LEFT OFF</p><h2 id="recent-title">Recent activity</h2></div>
+          </div>
+          <div class="recent-card" id="recent-card">
+            <span class="recent-symbol" aria-hidden="true">↗</span>
+            <div><h3>No products explored yet</h3><p>Your first product analysis will appear here.</p></div>
+            <button class="small-action" id="recent-action" type="button">Start now</button>
+          </div>
+        </section>
+
+        <nav class="dashboard-nav" aria-label="Dashboard navigation">
+          <a class="active" href="home.html" aria-current="page"><span aria-hidden="true">⌂</span>Home</a>
+          <a href="#recent-activity"><span aria-hidden="true">◇</span>Activity</a>
+          <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
+        </nav>
+      </section>
+    </main>
+    <script src="home.js"></script>
+      <script src="pwa.js" defer></script>
+  </body>
+</html>
+

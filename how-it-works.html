@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="theme-color" content="#080b11" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Learn how SpendWise works." />
+    <title>How SpendWise works</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell onboarding-shell">
+      <section class="auth-card tutorial-card" aria-labelledby="tutorial-title">
+        <header class="tutorial-topbar">
+          <span class="eyebrow">HOW IT WORKS</span>
+          <a class="skip-link" href="home.html">Skip</a>
+        </header>
+
+        <div class="tutorial-progress" aria-label="Tutorial progress">
+          <span class="is-active"></span><span></span><span></span>
+        </div>
+
+        <article class="tutorial-step is-active" data-tutorial-step="1">
+          <div class="tutorial-number">01</div>
+          <h1 id="tutorial-title">Choose something.</h1>
+          <p>Enter a product you’re thinking about buying, from a phone to a pair of shoes.</p>
+          <div class="tutorial-example"><span>Try:</span> “iPhone 15”</div>
+        </article>
+
+        <article class="tutorial-step" data-tutorial-step="2" hidden>
+          <div class="tutorial-number">02</div>
+          <h1>See the real picture.</h1>
+          <p>We show estimated parts, production costs, and the other expenses behind the retail price.</p>
+          <div class="mini-breakdown" aria-hidden="true">
+            <span style="--size: 72%">Parts</span>
+            <span style="--size: 48%">Other costs</span>
+            <span style="--size: 28%">Difference</span>
+          </div>
+        </article>
+
+        <article class="tutorial-step" data-tutorial-step="3" hidden>
+          <div class="tutorial-number">03</div>
+          <h1>Compare your choices.</h1>
+          <p>Add your budget to find practical alternatives and understand what you gain or give up.</p>
+          <p class="privacy-callout">Costs are estimates based on available sources.</p>
+        </article>
+
+        <div class="onboarding-actions">
+          <button class="button button--quiet" id="tutorial-back" type="button" hidden>Back</button>
+          <button class="button button--primary onboarding-next" id="tutorial-next" type="button">Next</button>
+        </div>
+      </section>
+    </main>
+    <script src="tutorial.js"></script>
+      <script src="pwa.js" defer></script>
+  </body>
+</html>
+
