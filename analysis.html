@@ -7,103 +7,218 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Explore an estimated product cost breakdown with SpendWise." />
+    <meta
+      name="description"
+      content="Explore an estimated product cost breakdown with SpendWise."
+    />
     <title>Product analysis | SpendWise</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css?v=8" />
   </head>
+
   <body class="dashboard-page analysis-page">
     <main class="app-shell analysis-shell">
-      <section class="auth-card analysis-card" aria-labelledby="analysis-title">
+      <section
+        class="auth-card analysis-card"
+        aria-labelledby="analysis-title"
+      >
         <header class="dashboard-topbar analysis-topbar">
-          <a class="brand dashboard-brand" href="home.html" aria-label="SpendWise dashboard">
-            <span class="brand-mark" aria-hidden="true"><span class="mark-stem"></span><span class="mark-top"></span><span class="mark-bottom"></span></span>
+          <a
+            class="brand dashboard-brand"
+            href="home.html"
+            aria-label="SpendWise dashboard"
+          >
+            <span class="brand-mark" aria-hidden="true">
+              <span class="mark-stem"></span>
+              <span class="mark-top"></span>
+              <span class="mark-bottom"></span>
+            </span>
             <span>SpendWise</span>
           </a>
-          <a class="back-to-dashboard" href="home.html"><span aria-hidden="true">←</span> Dashboard</a>
+
+          <a class="back-to-dashboard" href="home.html">
+            <span aria-hidden="true">←</span>
+            Dashboard
+          </a>
         </header>
 
         <section class="analysis-hero">
           <div>
             <p class="eyebrow">PRODUCT COST EXPLORER</p>
             <h1 id="analysis-title">Product analysis</h1>
-            <p id="analysis-intro">Explore how an estimated build cost compares with the price on the shelf.</p>
-            <p class="market-context" id="market-context">Price market: <strong id="market-country">Not selected</strong></p>
+
+            <p id="analysis-intro">
+              Explore how an estimated build cost compares with the price on
+              the shelf.
+            </p>
+
+            <p class="market-context" id="market-context">
+              Price market:
+              <strong id="market-country">Not selected</strong>
+            </p>
           </div>
-          <span class="data-status" id="data-status"><span aria-hidden="true"></span> Estimates not connected yet</span>
+
+          <span class="data-status" id="data-status" role="status">
+            <span aria-hidden="true"></span>
+            Ready to explore
+          </span>
         </section>
 
         <section class="price-summary" aria-label="Product price summary">
           <article class="price-card price-card--build">
-            <div class="price-card-heading"><span class="price-icon" aria-hidden="true">⌁</span><span>EST. COST TO MARKET</span></div>
+            <div class="price-card-heading">
+              <span class="price-icon" aria-hidden="true">⌁</span>
+              <span>EST. MAKING COST</span>
+            </div>
+
             <strong class="price-value" id="manufacturing-total">—</strong>
-            <p id="build-caption">Waiting for a source-backed estimate</p>
+            <p id="build-caption">Finding an approximate cost</p>
           </article>
+
           <article class="price-card price-card--retail">
-            <div class="price-card-heading"><span class="price-icon" aria-hidden="true">◇</span><span>TYPICAL RETAIL PRICE</span></div>
+            <div class="price-card-heading">
+              <span class="price-icon" aria-hidden="true">◇</span>
+              <span>TYPICAL RETAIL PRICE</span>
+            </div>
+
             <strong class="price-value" id="retail-price">—</strong>
             <p id="retail-caption">Waiting for a current market price</p>
           </article>
+
           <article class="price-card price-card--difference">
-            <div class="price-card-heading"><span class="price-icon" aria-hidden="true">↗</span><span>THE DIFFERENCE</span></div>
+            <div class="price-card-heading">
+              <span class="price-icon" aria-hidden="true">↗</span>
+              <span>THE DIFFERENCE</span>
+            </div>
+
             <strong class="price-value" id="price-difference">—</strong>
-            <p id="difference-caption">Retail price minus estimated build cost</p>
+            <p id="difference-caption">
+              Retail price minus estimated build cost
+            </p>
           </article>
         </section>
 
         <div class="analysis-main-grid">
-          <section class="analysis-panel parts-panel" aria-labelledby="parts-title">
+          <section
+            class="analysis-panel parts-panel"
+            aria-labelledby="parts-title"
+          >
             <div class="analysis-section-heading">
-              <div><p class="section-kicker">WHERE THE BUILD COST GOES</p><h2 id="parts-title">Estimated parts breakdown</h2></div>
-              <span class="estimate-tag">ESTIMATES</span>
+              <div>
+                <p class="section-kicker">WHERE THE BUILD COST GOES</p>
+                <h2 id="parts-title">Estimated parts breakdown</h2>
+              </div>
+
+              <span class="estimate-tag">APPROXIMATE</span>
             </div>
-            <p class="panel-intro">These figures will be estimates, not the company’s exact private costs. Each search can return a different breakdown.</p>
+
+            <p class="panel-intro">
+              These are approximate costs for parts and assembly. The company's
+              actual costs may be different.
+            </p>
 
             <div class="parts-list" id="parts-list">
               <div class="parts-empty">
                 <span aria-hidden="true">◌</span>
-                <strong>Cost details will appear here</strong>
-                <p>Once product research is connected, this section will show the estimated parts and their costs.</p>
+                <strong>Finding out what goes inside</strong>
+
+                <p>
+                  The parts and their approximate costs will appear here.
+                </p>
               </div>
             </div>
-            <div class="parts-total"><span>Estimated total making cost</span><strong id="parts-total">—</strong></div>
+
+            <div class="parts-total">
+              <span>Estimated total making cost</span>
+              <strong id="parts-total">—</strong>
+            </div>
           </section>
 
           <aside class="analysis-side-column">
             <article class="learning-card">
               <span class="learning-icon" aria-hidden="true">✳</span>
               <p class="section-kicker">THE MONEY LESSON</p>
+
               <h2>Build cost is only one piece of the price.</h2>
-              <p>A retail price can also cover research, software, shipping, store costs, support, marketing, and profit.</p>
-              <a href="how-it-works.html" class="text-link">Review how it works <span aria-hidden="true">→</span></a>
+
+              <p>
+                A retail price can also cover research, software, shipping,
+                store costs, support, marketing, and profit.
+              </p>
+
+              <a href="how-it-works.html" class="text-link">
+                Review how it works
+                <span aria-hidden="true">→</span>
+              </a>
             </article>
 
             <article class="source-card">
-              <div class="source-card-heading"><span class="source-icon" aria-hidden="true">◎</span><div><p class="section-kicker">CHECK THE EVIDENCE</p><h2>Sources &amp; confidence</h2></div></div>
-              <p id="source-note">Sources and confidence will appear here with each researched result.</p>
-              <div class="confidence-line"><span>Estimate confidence</span><strong id="confidence-value">—</strong></div>
-              <div class="confidence-track" aria-hidden="true"><span id="confidence-bar"></span></div>
-              <p class="updated-note" id="updated-note">No estimate has been loaded yet.</p>
+              <div class="source-card-heading">
+                <span class="source-icon" aria-hidden="true">◎</span>
+
+                <div>
+                  <p class="section-kicker">CHECK THE EVIDENCE</p>
+                  <h2>About this estimate</h2>
+                </div>
+              </div>
+
+              <div id="source-note">
+                Sources will appear here with each result.
+              </div>
+
+              <div class="confidence-line">
+                <span>Evidence strength</span>
+                <strong id="confidence-value">—</strong>
+              </div>
+
+              <div class="confidence-track" aria-hidden="true">
+                <span id="confidence-bar"></span>
+              </div>
+
+              <p class="updated-note" id="updated-note">
+                No estimate has been loaded yet.
+              </p>
             </article>
           </aside>
         </div>
 
         <section class="alternatives-callout">
           <div class="alternative-mark" aria-hidden="true">↗</div>
-          <div><p class="section-kicker">NEXT STEP</p><h2>Want something similar for less?</h2><p>Once you set a budget, SpendWise can compare alternatives that meet your needs.</p></div>
-          <a class="button button--primary alternative-button" href="home.html#product-search">Explore alternatives</a>
+
+          <div>
+            <p class="section-kicker">NEXT STEP</p>
+            <h2>Want something similar for less?</h2>
+
+            <p>
+              Once you set a budget, SpendWise can compare alternatives that
+              meet your needs.
+            </p>
+          </div>
+
+          <a
+            class="button button--primary alternative-button"
+            href="home.html#product-search"
+          >
+            Explore alternatives
+          </a>
         </section>
 
         <footer class="analysis-footer">
           <a href="home.html">← Back to dashboard</a>
-          <span>Numbers are estimates and can change as sources are updated.</span>
+
+          <span>
+            Numbers are estimates and can change as sources are updated.
+          </span>
         </footer>
       </section>
     </main>
-    <script src="analysis.js"></script>
-      <script src="pwa.js" defer></script>
+
+    <script src="analysis.js?v=3"></script>
+    <script src="pwa.js" defer></script>
   </body>
 </html>
-
