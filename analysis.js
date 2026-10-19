@@ -61,11 +61,33 @@ const estimate = {
   updatedAt: null,
 };
 
-const storedEstimate = readStoredJson("spendwise_analysis_data");
-if (storedEstimate
-  && storedEstimate.product?.toLowerCase() === requestedProduct.toLowerCase()
-  && (!storedEstimate.countryCode || storedEstimate.countryCode === selectedCountry)) {
-  Object.assign(estimate, storedEstimate);
+const resultCacheStorageKey = "spendwise_research_cache_v2";
+const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
+const savedResults = readStoredJson(resultCacheStorageKey);
+const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
+const storedEstimate = storedEntry?.estimate;
+const hasFreshEstimate = storedEstimate && storedEstimate.currency === currency
+  && storedEstimate.countryCode === selectedCountry
+  && Number.isFinite(storedEstimate.cacheExpiresAt)
+  && storedEstimate.cacheExpiresAt > Date.now()
+  && storedEstimate.cacheExpiresAt <= Date.now() + 6 * 60 * 60 * 1000
+  && (Number.isFinite(storedEstimate.manufacturingTotal) || Number.isFinite(storedEstimate.retailPrice))
+  && Array.isArray(storedEstimate.components) && Array.isArray(storedEstimate.sources);
+if (hasFreshEstimate) Object.assign(estimate, storedEstimate);
+
+function saveResearchResult() {
+  if (!Number.isFinite(estimate.manufacturingTotal) && !Number.isFinite(estimate.retailPrice)) return;
+  try {
+    const entries = readStoredJson(resultCacheStorageKey);
+    const freshEntries = (Array.isArray(entries) ? entries : []).filter((entry) =>
+      entry?.key !== resultCacheKey && entry?.estimate?.cacheExpiresAt > Date.now());
+    // Preserve the original expiry when a result came from the Worker cache.
+    const cacheExpiresAt = Number.isFinite(estimate.cacheExpiresAt)
+      ? Math.min(estimate.cacheExpiresAt, Date.now() + 6 * 60 * 60 * 1000)
+      : Date.now() + 6 * 60 * 60 * 1000;
+    freshEntries.unshift({ key: resultCacheKey, estimate: { ...estimate, cacheExpiresAt } });
+    localStorage.setItem(resultCacheStorageKey, JSON.stringify(freshEntries.slice(0, 20)));
+  } catch { /* Storage may be full or disabled; the current result still displays. */ }
 }
 
 function readStoredJson(key) {
@@ -247,15 +269,29 @@ function renderAnalysis() {
 }
 
 renderAnalysis();
+if (hasFreshEstimate) {
+  document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Recent estimate loaded';
+}
 
 async function loadProductResearch() {
   const dataStatus = document.querySelector("#data-status");
   dataStatus.innerHTML = '<span aria-hidden="true"></span> Researching product…';
   dataStatus.classList.remove("is-loaded");
+  const startedAt = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 285000);
+  const progress = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    dataStatus.innerHTML = `<span aria-hidden="true"></span> Researching product… ${elapsed}s`;
+    if (elapsed >= 20) {
+      document.querySelector("#source-note").textContent = "Still waiting for the research result. A new product search can take a few minutes; recent saved results load faster.";
+    }
+  }, 1000);
 
   try {
     const response = await fetch(analysisApiUrl, {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         product: requestedProduct,
@@ -268,12 +304,20 @@ async function loadProductResearch() {
     if (!response.ok) throw new Error(result.error || "Research request failed.");
 
     Object.assign(estimate, result, { countryCode: selectedCountry, currency });
-    localStorage.setItem("spendwise_analysis_data", JSON.stringify(estimate));
+    saveResearchResult();
     renderAnalysis();
+    if (!Number.isFinite(estimate.manufacturingTotal) && !Number.isFinite(estimate.retailPrice)) {
+      dataStatus.innerHTML = '<span aria-hidden="true"></span> Insufficient evidence';
+    }
   } catch (error) {
     dataStatus.innerHTML = '<span aria-hidden="true"></span> Research unavailable';
-    document.querySelector("#source-note").textContent = error.message || "Could not load a researched estimate. Please try again.";
+    document.querySelector("#source-note").textContent = error.name === "AbortError"
+      ? "The research request took too long. Please try again with the exact product model."
+      : error.message || "Could not load a researched estimate. Please try again.";
+  } finally {
+    clearTimeout(timeout);
+    clearInterval(progress);
   }
 }
 
-if (requestedProduct !== "Your product" && selectedCountry) loadProductResearch();
+if (!hasFreshEstimate && requestedProduct !== "Your product" && selectedCountry) loadProductResearch();
