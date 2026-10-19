@@ -1,7 +1,9 @@
 /*
-  Data contract for a future research/API response:
+  Research API response (additional evidence notes stay internal):
   {
     product: "Product name",
+    schemaVersion: 3,
+    breakdownComplete: true,
     currency: "INR",
     manufacturingTotal: 0, // estimated number, not a display string
     retailPrice: 0,
@@ -43,7 +45,7 @@ const marketCurrencies = {
 const currency = params.get("currency") || marketCurrencies[selectedCountry] || profile.currency || "INR";
 const currencyLocale = { INR: "en-IN", USD: "en-US", GBP: "en-GB", EUR: "de-DE", AUD: "en-AU", CAD: "en-CA" };
 
-// The future API can replace these nulls with a fresh, product-specific estimate.
+// Start empty until the research API or a complete saved result supplies costs.
 const estimate = {
   product: requestedProduct,
   countryCode: selectedCountry,
@@ -61,17 +63,18 @@ const estimate = {
   updatedAt: null,
 };
 
-const resultCacheStorageKey = "spendwise_research_cache_v2";
+const resultCacheStorageKey = "spendwise_research_cache_v3";
 const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
 const savedResults = readStoredJson(resultCacheStorageKey);
 const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
 const storedEstimate = storedEntry?.estimate;
 function hasCompleteEstimate(data) {
-  return Number.isFinite(data?.manufacturingTotal)
-    && Number.isFinite(data?.retailPrice)
+  return data?.schemaVersion === 3 && data.breakdownComplete === true
+    && Number.isFinite(data.manufacturingTotal) && data.manufacturingTotal > 0
+    && Number.isFinite(data.retailPrice) && data.retailPrice >= 0
     && Array.isArray(data?.components)
     && data.components.length > 0
-    && data.components.every((component) => Number.isFinite(component?.estimatedCost))
+    && data.components.every((component) => Number.isFinite(component?.estimatedCost) && component.estimatedCost >= 0)
     && Array.isArray(data?.sources)
     && data.sources.length > 0;
 }
@@ -186,11 +189,12 @@ function renderComponents(components) {
     symbol.setAttribute("aria-hidden", "true");
     symbol.textContent = "◌";
     const title = document.createElement("strong");
-    title.textContent = "Cost details will appear here";
+    title.textContent = estimate.updatedAt ? "We couldn't estimate the parts yet" : "Finding out what goes inside";
     const description = document.createElement("p");
     description.textContent = Number.isFinite(estimate.retailPrice)
-      ? "This search found a retail price, but no supported manufacturing cost breakdown. Try a more specific model or search again later."
-      : "A supported manufacturing cost breakdown has not been found yet. Try a more specific model or search again later.";
+      ? "We found the shop price, but need more information about the parts. Try including the exact model and storage size."
+      : estimate.updatedAt ? "Try including the exact model and storage size in your search."
+        : "The parts and their approximate costs will appear here.";
     empty.append(symbol, title, description);
     list.appendChild(empty);
     return;
@@ -211,7 +215,7 @@ function renderComponents(components) {
     info.append(name, bar);
     const cost = document.createElement("strong");
     cost.className = "part-cost";
-    cost.textContent = formatMoney(component.estimatedCost);
+    cost.textContent = Number.isFinite(component.estimatedCost) ? formatMoney(component.estimatedCost) : "Unknown";
     row.append(info, cost);
     list.appendChild(row);
   });
@@ -223,17 +227,21 @@ function renderAnalysis() {
   document.querySelector("#analysis-title").textContent = estimate.product;
   document.querySelector("#analysis-intro").textContent = `Explore how the estimated build cost of ${estimate.product} compares with its price on the shelf.`;
   document.querySelector("#market-country").textContent = countryNames[selectedCountry] || "Not selected";
-  document.querySelector("#manufacturing-total").textContent = formatMoney(estimate.totalCostToMarket);
+  document.querySelector("#manufacturing-total").textContent = formatMoney(estimate.manufacturingTotal);
   document.querySelector("#retail-price").textContent = formatMoney(estimate.retailPrice);
 
   const difference = typeof estimate.retailPrice === "number" && typeof estimate.manufacturingTotal === "number"
     ? estimate.retailPrice - estimate.manufacturingTotal
     : null;
   document.querySelector("#price-difference").textContent = formatMoney(difference);
-  document.querySelector("#parts-total").textContent = formatMoney(estimate.totalCostToMarket);
-  document.querySelector("#build-caption").textContent = estimate.totalCostToMarket == null ? "Waiting for a source-backed estimate" : "Estimated cost for the selected market";
+  document.querySelector("#parts-total").textContent = formatMoney(estimate.manufacturingTotal);
+  document.querySelector("#build-caption").textContent = estimate.manufacturingTotal == null
+    ? estimate.updatedAt ? "Some costs are still unknown" : "Finding an approximate cost"
+    : "Approximate cost of parts and assembly";
   document.querySelector("#retail-caption").textContent = estimate.retailPrice == null ? "Waiting for a current market price" : "Current typical selling price";
-  document.querySelector("#difference-caption").textContent = difference == null ? "Retail price minus estimated manufacturing cost" : "This difference also supports the wider business";
+  document.querySelector("#difference-caption").textContent = difference == null
+    ? "We need both prices to work this out"
+    : "Also pays for software, shops, support and profit";
 
   renderComponents(estimate.components);
 
@@ -262,7 +270,8 @@ function renderAnalysis() {
   }
 
   const confidence = Number.isFinite(estimate.confidence) ? Math.min(100, Math.max(0, estimate.confidence)) : null;
-  document.querySelector("#confidence-value").textContent = confidence == null ? "—" : `${confidence}%`;
+  document.querySelector("#confidence-value").textContent = confidence == null ? "—"
+    : confidence <= 30 ? "Limited" : confidence <= 60 ? "Moderate" : "Stronger";
   document.querySelector("#confidence-bar").style.width = confidence == null ? "0%" : `${confidence}%`;
 
   if (estimate.updatedAt) {
@@ -273,20 +282,15 @@ function renderAnalysis() {
   }
 
   if (hasCompleteEstimate(estimate)) {
-    document.querySelector("#data-status").innerHTML = "<span aria-hidden=\"true\"></span> Estimate loaded";
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Approximate estimate';
     document.querySelector("#data-status").classList.add("is-loaded");
-  } else if (typeof estimate.manufacturingTotal === "number" || typeof estimate.retailPrice === "number") {
-    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Partial estimate — breakdown unavailable';
+  } else if (estimate.updatedAt) {
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Some costs are still unknown';
     document.querySelector("#data-status").classList.remove("is-loaded");
   }
 }
 
 renderAnalysis();
-if (hasFreshEstimate) {
-  document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Recent estimate loaded';
-} else if (storedEstimate && (Number.isFinite(storedEstimate.manufacturingTotal) || Number.isFinite(storedEstimate.retailPrice))) {
-  document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Previous result was incomplete — researching again';
-}
 
 async function loadProductResearch() {
   const dataStatus = document.querySelector("#data-status");
@@ -321,14 +325,6 @@ async function loadProductResearch() {
     Object.assign(estimate, result, { countryCode: selectedCountry, currency });
     saveResearchResult();
     renderAnalysis();
-    if (!hasCompleteEstimate(estimate)) {
-      dataStatus.classList.remove("is-loaded");
-    }
-    if (!Number.isFinite(estimate.manufacturingTotal) && !Number.isFinite(estimate.retailPrice)) {
-      dataStatus.innerHTML = '<span aria-hidden="true"></span> Insufficient evidence';
-    } else if (!hasCompleteEstimate(estimate)) {
-      dataStatus.innerHTML = '<span aria-hidden="true"></span> Partial estimate — breakdown unavailable';
-    }
   } catch (error) {
     dataStatus.innerHTML = '<span aria-hidden="true"></span> Research unavailable';
     document.querySelector("#source-note").textContent = error.name === "AbortError"
