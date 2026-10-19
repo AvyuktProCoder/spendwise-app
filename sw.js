@@ -1,4 +1,5 @@
-const CACHE_NAME = "spendwise-shell-v1";
+const CACHE_NAME = "spendwise-shell-v2";
+
 const APP_FILES = [
   "./",
   "./index.html",
@@ -21,47 +22,80 @@ const APP_FILES = [
   "./icons/spendwise-512.png",
 ];
 
+// Save the app's files when this service worker installs.
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    const requests = APP_FILES.map((path) => new Request(new URL(path, self.registration.scope)));
+    const requests = APP_FILES.map(
+      (path) => new Request(new URL(path, self.registration.scope))
+    );
+
     await cache.addAll(requests);
     await self.skipWaiting();
   })());
 });
 
+// Remove older versions of the saved app files.
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
     const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.filter((name) => name.startsWith("spendwise-shell-") && name !== CACHE_NAME)
-      .map((name) => caches.delete(name)));
+
+    await Promise.all(
+      cacheNames
+        .filter(
+          (name) =>
+            name.startsWith("spendwise-shell-") &&
+            name !== CACHE_NAME
+        )
+        .map((name) => caches.delete(name))
+    );
+
     await self.clients.claim();
   })());
 });
 
+// Try the internet first; use saved files if the request fails.
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
-  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+
+  if (
+    request.method !== "GET" ||
+    url.origin !== self.location.origin
+  ) {
+    return;
+  }
 
   event.respondWith((async () => {
     try {
       const response = await fetch(request);
+
       if (response.ok) {
         const cache = await caches.open(CACHE_NAME);
         await cache.put(request, response.clone());
       }
+
       return response;
     } catch {
-      const cached = await caches.match(request, { ignoreSearch: true });
-      if (cached) return cached;
-      if (request.mode === "navigate") {
-        return caches.match(new URL("./index.html", self.registration.scope).href);
-      }
-      return new Response("You are offline and this page is not saved yet.", {
-        status: 503,
-        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      const cached = await caches.match(request, {
+        ignoreSearch: true,
       });
+
+      if (cached) return cached;
+
+      if (request.mode === "navigate") {
+        return caches.match(
+          new URL("./index.html", self.registration.scope).href
+        );
+      }
+
+      return new Response(
+        "You are offline and this page is not saved yet.",
+        {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        }
+      );
     }
   })());
 });
