@@ -2,10 +2,12 @@
   Research API response (additional evidence notes stay internal):
   {
     product: "Product name",
-    schemaVersion: 3,
+    schemaVersion: 4,
     breakdownComplete: true,
     currency: "INR",
     manufacturingTotal: 0, // estimated number, not a display string
+    manufacturingCostRange: null, // or { min: sourcedSubtotal, max: sourcedSubtotal + estimatedAddition }
+    estimateStatus: "sourced", // sourced | range | partial | unavailable
     retailPrice: 0,
     components: [{ name: "Display", estimatedCost: 0, share: 0 }],
     manufacturingPlants: [{ id: "plant-1", countryCode: "CN", latitude: 0, longitude: 0 }],
@@ -63,13 +65,13 @@ const estimate = {
   updatedAt: null,
 };
 
-const resultCacheStorageKey = "spendwise_research_cache_v3";
+const resultCacheStorageKey = "spendwise_research_cache_v4";
 const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
 const savedResults = readStoredJson(resultCacheStorageKey);
 const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
 const storedEstimate = storedEntry?.estimate;
 function hasCompleteEstimate(data) {
-  return data?.schemaVersion === 3 && data.breakdownComplete === true
+  return data?.schemaVersion === 4 && data.breakdownComplete === true
     && Number.isFinite(data.manufacturingTotal) && data.manufacturingTotal > 0
     && Number.isFinite(data.retailPrice) && data.retailPrice >= 0
     && Array.isArray(data?.components)
@@ -78,24 +80,42 @@ function hasCompleteEstimate(data) {
     && Array.isArray(data?.sources)
     && data.sources.length > 0;
 }
+function hasManufacturingRange(data) {
+  const range = data?.manufacturingCostRange;
+  return data?.schemaVersion === 4 && data.estimateStatus === "range"
+    && data.partsIdentified === true && data.coverage?.sourcedGroups > 0
+    && data.coverage?.estimatedGroups > 0 && data.coverage?.unknownGroups === 0
+    && Number.isFinite(range?.min) && range.min > 0
+    && Number.isFinite(range?.max) && range.max >= range.min
+    && range.min === data.sourcedSubtotal && Number.isFinite(data.estimatedAddition)
+    && Math.abs(range.max - range.min - data.estimatedAddition) < 0.02;
+}
+function hasUsableEstimate(data) {
+  return hasCompleteEstimate(data) || (hasManufacturingRange(data)
+    && Number.isFinite(data.retailPrice) && data.retailPrice >= 0
+    && Array.isArray(data.sources) && data.sources.length > 0);
+}
+function cacheLifetime(data) {
+  return hasManufacturingRange(data) ? 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
+}
 const hasFreshEstimate = storedEstimate && storedEstimate.currency === currency
   && storedEstimate.countryCode === selectedCountry
   && Number.isFinite(storedEstimate.cacheExpiresAt)
   && storedEstimate.cacheExpiresAt > Date.now()
-  && storedEstimate.cacheExpiresAt <= Date.now() + 6 * 60 * 60 * 1000
-  && hasCompleteEstimate(storedEstimate);
+  && storedEstimate.cacheExpiresAt <= Date.now() + cacheLifetime(storedEstimate)
+  && hasUsableEstimate(storedEstimate);
 if (hasFreshEstimate) Object.assign(estimate, storedEstimate);
 
 function saveResearchResult() {
-  if (!hasCompleteEstimate(estimate)) return;
+  if (!hasUsableEstimate(estimate)) return;
   try {
     const entries = readStoredJson(resultCacheStorageKey);
     const freshEntries = (Array.isArray(entries) ? entries : []).filter((entry) =>
       entry?.key !== resultCacheKey && entry?.estimate?.cacheExpiresAt > Date.now());
     // Preserve the original expiry when a result came from the Worker cache.
     const cacheExpiresAt = Number.isFinite(estimate.cacheExpiresAt)
-      ? Math.min(estimate.cacheExpiresAt, Date.now() + 6 * 60 * 60 * 1000)
-      : Date.now() + 6 * 60 * 60 * 1000;
+      ? Math.min(estimate.cacheExpiresAt, Date.now() + cacheLifetime(estimate))
+      : Date.now() + cacheLifetime(estimate);
     freshEntries.unshift({ key: resultCacheKey, estimate: { ...estimate, cacheExpiresAt } });
     localStorage.setItem(resultCacheStorageKey, JSON.stringify(freshEntries.slice(0, 20)));
   } catch { /* Storage may be full or disabled; the current result still displays. */ }
@@ -112,6 +132,10 @@ function formatMoney(amount) {
     currency: estimate.currency,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function formatRange(range) {
+  return `${formatMoney(range.min)}–${formatMoney(range.max)}`;
 }
 
 function distanceKm(start, end) {
@@ -207,15 +231,28 @@ function renderComponents(components) {
     info.className = "part-info";
     const name = document.createElement("strong");
     name.textContent = component.name || "Component";
+    const evidence = document.createElement("span");
+    evidence.className = "part-evidence";
+    const isPriorKnowledge = component.evidenceType === "prior_knowledge";
+    evidence.textContent = isPriorKnowledge ? "AI estimate—no supporting price source"
+      : Number.isFinite(component.estimatedCost) ? "Cost supported by a source" : "No supported cost found";
+    if (isPriorKnowledge) evidence.classList.add("part-evidence--ai");
     const bar = document.createElement("span");
     bar.className = "part-bar";
     const fill = document.createElement("span");
     fill.style.width = `${Math.min(100, Math.max(0, Number(component.share) || 0))}%`;
     bar.appendChild(fill);
-    info.append(name, bar);
+    info.append(name, evidence, bar);
+    if (isPriorKnowledge && component.basis) {
+      const assumptions = document.createElement("span");
+      assumptions.className = "part-evidence";
+      assumptions.textContent = component.basis;
+      info.appendChild(assumptions);
+    }
     const cost = document.createElement("strong");
     cost.className = "part-cost";
-    cost.textContent = Number.isFinite(component.estimatedCost) ? formatMoney(component.estimatedCost) : "Unknown";
+    cost.textContent = Number.isFinite(component.estimatedCost)
+      ? `${isPriorKnowledge ? "~" : ""}${formatMoney(component.estimatedCost)}` : "Unknown";
     row.append(info, cost);
     list.appendChild(row);
   });
@@ -227,21 +264,44 @@ function renderAnalysis() {
   document.querySelector("#analysis-title").textContent = estimate.product;
   document.querySelector("#analysis-intro").textContent = `Explore how the estimated build cost of ${estimate.product} compares with its price on the shelf.`;
   document.querySelector("#market-country").textContent = countryNames[selectedCountry] || "Not selected";
-  document.querySelector("#manufacturing-total").textContent = formatMoney(estimate.manufacturingTotal);
+  const hasRange = hasManufacturingRange(estimate);
+  const unavailable = estimate.updatedAt && estimate.estimateStatus === "unavailable";
+  const makingCost = hasRange ? formatRange(estimate.manufacturingCostRange)
+    : unavailable ? "Unavailable" : formatMoney(estimate.manufacturingTotal);
+  document.querySelector("#manufacturing-total").textContent = makingCost;
+  const rangeClass = "price-value--range";
+  document.querySelector("#manufacturing-total").classList.remove(rangeClass);
+  document.querySelector("#price-difference").classList.remove(rangeClass);
+  if (hasRange) {
+    document.querySelector("#manufacturing-total").classList.add(rangeClass);
+    document.querySelector("#price-difference").classList.add(rangeClass);
+  }
   document.querySelector("#retail-price").textContent = formatMoney(estimate.retailPrice);
 
   const difference = typeof estimate.retailPrice === "number" && typeof estimate.manufacturingTotal === "number"
     ? estimate.retailPrice - estimate.manufacturingTotal
     : null;
-  document.querySelector("#price-difference").textContent = formatMoney(difference);
-  document.querySelector("#parts-total").textContent = formatMoney(estimate.manufacturingTotal);
-  document.querySelector("#build-caption").textContent = estimate.manufacturingTotal == null
-    ? estimate.updatedAt ? "Some costs are still unknown" : "Finding an approximate cost"
-    : "Approximate cost of parts and assembly";
+  document.querySelector("#price-difference").textContent = hasRange && Number.isFinite(estimate.retailPrice)
+    ? formatRange({ min: estimate.retailPrice - estimate.manufacturingCostRange.max,
+      max: estimate.retailPrice - estimate.manufacturingCostRange.min }) : formatMoney(difference);
+  document.querySelector("#parts-total").textContent = estimate.estimateStatus === "partial"
+    ? formatMoney(estimate.sourcedSubtotal) : makingCost;
+  document.querySelector("#parts-total-label").textContent = estimate.estimateStatus === "partial"
+    ? "Subtotal of supported parts" : hasRange ? "Estimated making-cost range" : "Estimated total making cost";
+  document.querySelector("#build-caption").textContent = hasRange ? "Includes AI estimates for missing parts"
+    : unavailable ? "No supported manufacturing cost found"
+      : estimate.manufacturingTotal == null
+        ? estimate.updatedAt ? "Only a partial cost breakdown is available" : "Finding an approximate cost"
+        : "Approximate cost of parts and assembly";
+  document.querySelector("#manufacturing-explanation").textContent = estimate.manufacturingMessage || "";
+  const coverage = estimate.coverage;
+  document.querySelector("#parts-coverage").textContent = coverage
+    ? `Sourced costs: ${coverage.sourcedGroups}/${coverage.totalGroups} groups. AI estimates: ${coverage.estimatedGroups}. Unknown: ${coverage.unknownGroups}.` : "";
   document.querySelector("#retail-caption").textContent = estimate.retailPrice == null ? "Waiting for a current market price" : "Current typical selling price";
-  document.querySelector("#difference-caption").textContent = difference == null
-    ? "We need both prices to work this out"
-    : "Also pays for software, shops, support and profit";
+  document.querySelector("#difference-caption").textContent = hasRange && Number.isFinite(estimate.retailPrice)
+    ? "Retail price minus the cost range; also covers software, shops, support and profit"
+    : difference == null ? "We need a complete cost estimate and retail price to work this out"
+      : "Also pays for software, shops, support and profit";
 
   renderComponents(estimate.components);
 
@@ -266,11 +326,12 @@ function renderAnalysis() {
     });
     sourceNote.append(summary, sourceList);
   } else {
-    sourceNote.textContent = "Sources and confidence will appear here with each researched result.";
+    sourceNote.textContent = estimate.updatedAt ? "No supporting web sources were found for this result."
+      : "Sources and confidence will appear here with each researched result.";
   }
 
   const confidence = Number.isFinite(estimate.confidence) ? Math.min(100, Math.max(0, estimate.confidence)) : null;
-  document.querySelector("#confidence-value").textContent = confidence == null ? "—"
+  document.querySelector("#confidence-value").textContent = unavailable ? "Insufficient evidence" : confidence == null ? "—"
     : confidence <= 30 ? "Limited" : confidence <= 60 ? "Moderate" : "Stronger";
   document.querySelector("#confidence-bar").style.width = confidence == null ? "0%" : `${confidence}%`;
 
@@ -281,7 +342,13 @@ function renderAnalysis() {
       : `Updated ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(updatedAt)}.`;
   }
 
-  if (hasCompleteEstimate(estimate)) {
+  if (hasRange) {
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes AI estimates';
+    document.querySelector("#data-status").classList.remove("is-loaded");
+  } else if (unavailable) {
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Manufacturing cost unavailable';
+    document.querySelector("#data-status").classList.remove("is-loaded");
+  } else if (hasCompleteEstimate(estimate)) {
     document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Approximate estimate';
     document.querySelector("#data-status").classList.add("is-loaded");
   } else if (estimate.updatedAt) {
