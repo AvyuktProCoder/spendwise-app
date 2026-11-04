@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=9" />
+    <link rel="stylesheet" href="styles.css?v=10" />
   </head>
   <body class="dashboard-page analysis-page">
     <main class="app-shell analysis-shell">
@@ -53,14 +53,14 @@
           </article>
         </section>
 
-        <section class="value-verdict" id="value-verdict" aria-labelledby="value-verdict-title">
-          <div class="value-verdict-icon" aria-hidden="true">?</div>
+        <section class="value-verdict" id="value-verdict" aria-labelledby="value-verdict-title" aria-live="polite">
+          <div class="value-verdict-icon" id="value-verdict-icon" aria-hidden="true">?</div>
           <div class="value-verdict-copy">
             <p class="section-kicker">VALUE FOR MONEY</p>
             <div class="value-verdict-heading">
               <h2 id="value-verdict-title">Is this product worth its price?</h2>
             </div>
-            <p>A value-for-money result will appear here after the product analysis is complete.</p>
+            <p id="value-verdict-detail">A value-for-money result will appear here after the product analysis is complete.</p>
           </div>
         </section>
 
@@ -115,7 +115,7 @@
         </footer>
       </section>
     </main>
-    <script src="analysis.js?v=5"></script>
+    <script src="analysis.js?v=6"></script>
       <script src="pwa.js" defer></script>
   </body>
 </html>
