@@ -1205,6 +1205,11 @@ select:focus {
 .value-verdict-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 5px; }
 .value-verdict h2 { margin: 0; color: var(--text); font: 700 1rem/1.35 "Manrope", sans-serif; }
 .value-verdict p:last-child { margin: 7px 0 0; color: var(--muted); font-size: 0.76rem; line-height: 1.55; }
+.value-verdict.is-value { border-color: rgba(105, 233, 208, 0.34); background: linear-gradient(105deg, rgba(105, 233, 208, 0.12), rgba(255, 255, 255, 0.018)); }
+.value-verdict.is-not-value { border-color: rgba(255, 139, 139, 0.3); background: linear-gradient(105deg, rgba(255, 102, 102, 0.1), rgba(255, 255, 255, 0.018)); }
+.value-verdict.is-not-value .value-verdict-icon { color: #ff9b9b; background: rgba(255, 102, 102, 0.12); }
+.value-verdict.is-uncertain { border-color: rgba(255, 202, 112, 0.3); background: linear-gradient(105deg, rgba(255, 183, 77, 0.1), rgba(255, 255, 255, 0.018)); }
+.value-verdict.is-uncertain .value-verdict-icon { color: #ffd08a; background: rgba(255, 183, 77, 0.12); }
 .analysis-main-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(250px, 0.8fr); gap: 16px; margin-top: 18px; }
 .analysis-panel, .learning-card, .source-card { border: 1px solid rgba(173, 189, 216, 0.13); border-radius: 22px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.016)); }
 .parts-panel { padding: clamp(20px, 4vw, 27px); }
