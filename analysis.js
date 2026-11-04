@@ -46,6 +46,7 @@ const marketCurrencies = {
 };
 const currency = params.get("currency") || marketCurrencies[selectedCountry] || profile.currency || "INR";
 const currencyLocale = { INR: "en-IN", USD: "en-US", GBP: "en-GB", EUR: "de-DE", AUD: "en-AU", CAD: "en-CA" };
+const VALUE_FOR_MONEY_MARGIN_THRESHOLD = 28.77;
 
 // Start empty until the research API or a complete saved result supplies costs.
 const estimate = {
@@ -65,7 +66,7 @@ const estimate = {
   updatedAt: null,
 };
 
-const resultCacheStorageKey = "spendwise_research_cache_v4";
+const resultCacheStorageKey = "spendwise_research_cache_v5";
 const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
 const savedResults = readStoredJson(resultCacheStorageKey);
 const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
@@ -136,6 +137,64 @@ function formatMoney(amount) {
 
 function formatRange(range) {
   return `${formatMoney(range.min)}–${formatMoney(range.max)}`;
+}
+
+function grossMarginPercent(retailPrice, manufacturingCost) {
+  if (!Number.isFinite(retailPrice) || retailPrice <= 0
+    || !Number.isFinite(manufacturingCost) || manufacturingCost < 0) return null;
+  return (retailPrice - manufacturingCost) / retailPrice * 100;
+}
+
+function calculateValueVerdict(data) {
+  const threshold = VALUE_FOR_MONEY_MARGIN_THRESHOLD;
+  if (!Number.isFinite(data?.retailPrice) || data.retailPrice <= 0) {
+    return { state: "pending", icon: "?", title: "Not enough information yet",
+      detail: "A supported retail price is needed before value for money can be calculated." };
+  }
+
+  let minimumMargin;
+  let maximumMargin;
+  if (hasManufacturingRange(data)) {
+    minimumMargin = grossMarginPercent(data.retailPrice, data.manufacturingCostRange.max);
+    maximumMargin = grossMarginPercent(data.retailPrice, data.manufacturingCostRange.min);
+  } else if (hasCompleteEstimate(data)) {
+    minimumMargin = grossMarginPercent(data.retailPrice, data.manufacturingTotal);
+    maximumMargin = minimumMargin;
+  } else {
+    return { state: "pending", icon: "?", title: "Not enough information yet",
+      detail: "A complete manufacturing-cost estimate is needed before value for money can be calculated." };
+  }
+
+  if (!Number.isFinite(minimumMargin) || !Number.isFinite(maximumMargin)) {
+    return { state: "pending", icon: "?", title: "Not enough information yet",
+      detail: "The available prices could not be used to calculate value for money." };
+  }
+
+  const singleMargin = Math.abs(maximumMargin - minimumMargin) < 0.005;
+  const marginText = singleMargin ? `${minimumMargin.toFixed(1)}%`
+    : `${minimumMargin.toFixed(1)}%–${maximumMargin.toFixed(1)}%`;
+  const limitation = " This is a simple making-cost comparison, not the manufacturer's actual profit margin.";
+
+  if (maximumMargin <= threshold) {
+    return { state: "value", icon: "✓", title: "Value for money",
+      detail: `The estimated margin is ${marginText}, at or below the ${threshold}% threshold.${limitation}` };
+  }
+  if (minimumMargin > threshold) {
+    return { state: "not-value", icon: "!", title: "Not value for money",
+      detail: `The estimated margin is ${marginText}, above the ${threshold}% threshold.${limitation}` };
+  }
+  return { state: "uncertain", icon: "~", title: "Value result is uncertain",
+    detail: `The estimated margin is ${marginText}, which crosses the ${threshold}% threshold. Better cost evidence is needed for a firm result.${limitation}` };
+}
+
+function renderValueVerdict(data) {
+  const verdict = calculateValueVerdict(data);
+  const container = document.querySelector("#value-verdict");
+  container.classList.remove("is-value", "is-not-value", "is-uncertain");
+  if (verdict.state !== "pending") container.classList.add(`is-${verdict.state}`);
+  document.querySelector("#value-verdict-icon").textContent = verdict.icon;
+  document.querySelector("#value-verdict-title").textContent = verdict.title;
+  document.querySelector("#value-verdict-detail").textContent = verdict.detail;
 }
 
 function distanceKm(start, end) {
@@ -302,6 +361,8 @@ function renderAnalysis() {
     ? "Retail price minus the cost range; also covers software, shops, support and profit"
     : difference == null ? "We need a complete cost estimate and retail price to work this out"
       : "Also pays for software, shops, support and profit";
+
+  renderValueVerdict(estimate);
 
   renderComponents(estimate.components);
 
