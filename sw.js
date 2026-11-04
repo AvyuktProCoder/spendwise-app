@@ -1,4 +1,4 @@
-const CACHE_NAME = "spendwise-shell-v6";
+const CACHE_NAME = "spendwise-shell-v7";
 const APP_FILES = [
   "./",
   "./index.html",
