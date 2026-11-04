@@ -1,5 +1,5 @@
 /*
-  Research API response (additional evidence notes stay internal):
+  Research API response (source verification stays inside the Worker):
   {
     product: "Product name",
     schemaVersion: 4,
@@ -12,8 +12,6 @@
     components: [{ name: "Display", estimatedCost: 0, share: 0 }],
     manufacturingPlants: [{ id: "plant-1", countryCode: "CN", latitude: 0, longitude: 0 }],
     shippingEstimates: [{ originPlantId: "plant-1", destinationCountryCode: "IN", estimatedCost: 0 }],
-    confidence: 0, // number from 0 to 100
-    sources: [{ name: "Source name", url: "https://..." }],
     updatedAt: "ISO date string"
   }
   Costs stay variables here. No product-specific costs are hard-coded in the UI.
@@ -61,12 +59,10 @@ const estimate = {
   shippingEstimates: [],
   shippingCost: null,
   shippingOrigin: null,
-  confidence: null,
-  sources: [],
   updatedAt: null,
 };
 
-const resultCacheStorageKey = "spendwise_research_cache_v5";
+const resultCacheStorageKey = "spendwise_research_cache_v6";
 const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
 const savedResults = readStoredJson(resultCacheStorageKey);
 const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
@@ -77,9 +73,7 @@ function hasCompleteEstimate(data) {
     && Number.isFinite(data.retailPrice) && data.retailPrice >= 0
     && Array.isArray(data?.components)
     && data.components.length > 0
-    && data.components.every((component) => Number.isFinite(component?.estimatedCost) && component.estimatedCost >= 0)
-    && Array.isArray(data?.sources)
-    && data.sources.length > 0;
+    && data.components.every((component) => Number.isFinite(component?.estimatedCost) && component.estimatedCost >= 0);
 }
 function hasManufacturingRange(data) {
   const range = data?.manufacturingCostRange;
@@ -93,8 +87,7 @@ function hasManufacturingRange(data) {
 }
 function hasUsableEstimate(data) {
   return hasCompleteEstimate(data) || (hasManufacturingRange(data)
-    && Number.isFinite(data.retailPrice) && data.retailPrice >= 0
-    && Array.isArray(data.sources) && data.sources.length > 0);
+    && Number.isFinite(data.retailPrice) && data.retailPrice >= 0);
 }
 function cacheLifetime(data) {
   return hasManufacturingRange(data) ? 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
@@ -148,8 +141,7 @@ function grossMarginPercent(retailPrice, manufacturingCost) {
 function calculateValueVerdict(data) {
   const threshold = VALUE_FOR_MONEY_MARGIN_THRESHOLD;
   if (!Number.isFinite(data?.retailPrice) || data.retailPrice <= 0) {
-    return { state: "pending", icon: "?", title: "Not enough information yet",
-      detail: "A supported retail price is needed before value for money can be calculated." };
+    return { state: "pending", icon: "?", title: "Not enough information yet" };
   }
 
   let minimumMargin;
@@ -161,30 +153,20 @@ function calculateValueVerdict(data) {
     minimumMargin = grossMarginPercent(data.retailPrice, data.manufacturingTotal);
     maximumMargin = minimumMargin;
   } else {
-    return { state: "pending", icon: "?", title: "Not enough information yet",
-      detail: "A complete manufacturing-cost estimate is needed before value for money can be calculated." };
+    return { state: "pending", icon: "?", title: "Not enough information yet" };
   }
 
   if (!Number.isFinite(minimumMargin) || !Number.isFinite(maximumMargin)) {
-    return { state: "pending", icon: "?", title: "Not enough information yet",
-      detail: "The available prices could not be used to calculate value for money." };
+    return { state: "pending", icon: "?", title: "Not enough information yet" };
   }
-
-  const singleMargin = Math.abs(maximumMargin - minimumMargin) < 0.005;
-  const marginText = singleMargin ? `${minimumMargin.toFixed(1)}%`
-    : `${minimumMargin.toFixed(1)}%–${maximumMargin.toFixed(1)}%`;
-  const limitation = " This is a simple making-cost comparison, not the manufacturer's actual profit margin.";
 
   if (maximumMargin <= threshold) {
-    return { state: "value", icon: "✓", title: "Value for money",
-      detail: `The estimated margin is ${marginText}, at or below the ${threshold}% threshold.${limitation}` };
+    return { state: "value", icon: "✓", title: "Value for money" };
   }
   if (minimumMargin > threshold) {
-    return { state: "not-value", icon: "!", title: "Not value for money",
-      detail: `The estimated margin is ${marginText}, above the ${threshold}% threshold.${limitation}` };
+    return { state: "not-value", icon: "!", title: "Not value for money" };
   }
-  return { state: "uncertain", icon: "~", title: "Value result is uncertain",
-    detail: `The estimated margin is ${marginText}, which crosses the ${threshold}% threshold. Better cost evidence is needed for a firm result.${limitation}` };
+  return { state: "uncertain", icon: "~", title: "Value result is uncertain" };
 }
 
 function renderValueVerdict(data) {
@@ -194,7 +176,6 @@ function renderValueVerdict(data) {
   if (verdict.state !== "pending") container.classList.add(`is-${verdict.state}`);
   document.querySelector("#value-verdict-icon").textContent = verdict.icon;
   document.querySelector("#value-verdict-title").textContent = verdict.title;
-  document.querySelector("#value-verdict-detail").textContent = verdict.detail;
 }
 
 function distanceKm(start, end) {
@@ -290,24 +271,13 @@ function renderComponents(components) {
     info.className = "part-info";
     const name = document.createElement("strong");
     name.textContent = component.name || "Component";
-    const evidence = document.createElement("span");
-    evidence.className = "part-evidence";
     const isPriorKnowledge = component.evidenceType === "prior_knowledge";
-    evidence.textContent = isPriorKnowledge ? "AI estimate—no supporting price source"
-      : Number.isFinite(component.estimatedCost) ? "Cost supported by a source" : "No supported cost found";
-    if (isPriorKnowledge) evidence.classList.add("part-evidence--ai");
     const bar = document.createElement("span");
     bar.className = "part-bar";
     const fill = document.createElement("span");
     fill.style.width = `${Math.min(100, Math.max(0, Number(component.share) || 0))}%`;
     bar.appendChild(fill);
-    info.append(name, evidence, bar);
-    if (isPriorKnowledge && component.basis) {
-      const assumptions = document.createElement("span");
-      assumptions.className = "part-evidence";
-      assumptions.textContent = component.basis;
-      info.appendChild(assumptions);
-    }
+    info.append(name, bar);
     const cost = document.createElement("strong");
     cost.className = "part-cost";
     cost.textContent = Number.isFinite(component.estimatedCost)
@@ -353,9 +323,6 @@ function renderAnalysis() {
         ? estimate.updatedAt ? "Only a partial cost breakdown is available" : "Finding an approximate cost"
         : "Approximate cost of parts and assembly";
   document.querySelector("#manufacturing-explanation").textContent = estimate.manufacturingMessage || "";
-  const coverage = estimate.coverage;
-  document.querySelector("#parts-coverage").textContent = coverage
-    ? `Sourced costs: ${coverage.sourcedGroups}/${coverage.totalGroups} groups. AI estimates: ${coverage.estimatedGroups}. Unknown: ${coverage.unknownGroups}.` : "";
   document.querySelector("#retail-caption").textContent = estimate.retailPrice == null ? "Waiting for a current market price" : "Current typical selling price";
   document.querySelector("#difference-caption").textContent = hasRange && Number.isFinite(estimate.retailPrice)
     ? "Retail price minus the cost range; also covers software, shops, support and profit"
@@ -365,43 +332,6 @@ function renderAnalysis() {
   renderValueVerdict(estimate);
 
   renderComponents(estimate.components);
-
-  const sourceNote = document.querySelector("#source-note");
-  if (Array.isArray(estimate.sources) && estimate.sources.length) {
-    sourceNote.replaceChildren();
-    const summary = document.createElement("span");
-    summary.textContent = `${estimate.sources.length} source${estimate.sources.length === 1 ? "" : "s"} used for this estimate:`;
-    const sourceList = document.createElement("ul");
-    estimate.sources.forEach((source) => {
-      let parsedUrl;
-      try { parsedUrl = new URL(source.url); } catch { return; }
-      if (parsedUrl.protocol !== "https:") return;
-      const item = document.createElement("li");
-      const link = document.createElement("a");
-      link.href = parsedUrl.href;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.textContent = source.name || parsedUrl.hostname;
-      item.appendChild(link);
-      sourceList.appendChild(item);
-    });
-    sourceNote.append(summary, sourceList);
-  } else {
-    sourceNote.textContent = estimate.updatedAt ? "No supporting web sources were found for this result."
-      : "Sources and confidence will appear here with each researched result.";
-  }
-
-  const confidence = Number.isFinite(estimate.confidence) ? Math.min(100, Math.max(0, estimate.confidence)) : null;
-  document.querySelector("#confidence-value").textContent = unavailable ? "Insufficient evidence" : confidence == null ? "—"
-    : confidence <= 30 ? "Limited" : confidence <= 60 ? "Moderate" : "Stronger";
-  document.querySelector("#confidence-bar").style.width = confidence == null ? "0%" : `${confidence}%`;
-
-  if (estimate.updatedAt) {
-    const updatedAt = new Date(estimate.updatedAt);
-    document.querySelector("#updated-note").textContent = Number.isNaN(updatedAt.getTime())
-      ? "Estimate date not available."
-      : `Updated ${new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(updatedAt)}.`;
-  }
 
   if (hasRange) {
     document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes AI estimates';
@@ -430,9 +360,6 @@ async function loadProductResearch() {
   const progress = setInterval(() => {
     const elapsed = Math.floor((Date.now() - startedAt) / 1000);
     dataStatus.innerHTML = `<span aria-hidden="true"></span> Researching product… ${elapsed}s`;
-    if (elapsed >= 20) {
-      document.querySelector("#source-note").textContent = "Still waiting for the research result. A new product search can take a few minutes; recent saved results load faster.";
-    }
   }, 1000);
 
   try {
@@ -455,7 +382,7 @@ async function loadProductResearch() {
     renderAnalysis();
   } catch (error) {
     dataStatus.innerHTML = '<span aria-hidden="true"></span> Research unavailable';
-    document.querySelector("#source-note").textContent = error.name === "AbortError"
+    dataStatus.title = error.name === "AbortError"
       ? "The research request took too long. Please try again with the exact product model."
       : error.message || "Could not load a researched estimate. Please try again.";
   } finally {
