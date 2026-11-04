@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=11" />
   </head>
   <body class="dashboard-page analysis-page">
     <main class="app-shell analysis-shell">
@@ -60,7 +60,6 @@
             <div class="value-verdict-heading">
               <h2 id="value-verdict-title">Is this product worth its price?</h2>
             </div>
-            <p id="value-verdict-detail">A value-for-money result will appear here after the product analysis is complete.</p>
           </div>
         </section>
 
@@ -71,8 +70,6 @@
               <span class="estimate-tag">APPROXIMATE</span>
             </div>
             <p class="panel-intro">These are approximate costs for parts and assembly. The company's actual costs may be different.</p>
-            <p class="panel-intro" id="parts-coverage"></p>
-
             <div class="parts-list" id="parts-list">
               <div class="parts-empty">
                 <span aria-hidden="true">◌</span>
@@ -92,14 +89,6 @@
               <p>A retail price can also cover research, software, shipping, store costs, support, marketing, and profit.</p>
               <a href="how-it-works.html" class="text-link">Review how it works <span aria-hidden="true">→</span></a>
             </article>
-
-            <article class="source-card">
-              <div class="source-card-heading"><span class="source-icon" aria-hidden="true">◎</span><div><p class="section-kicker">CHECK THE EVIDENCE</p><h2>About this estimate</h2></div></div>
-              <div id="source-note">Sources will appear here with each result.</div>
-              <div class="confidence-line"><span>Evidence strength</span><strong id="confidence-value">—</strong></div>
-              <div class="confidence-track" aria-hidden="true"><span id="confidence-bar"></span></div>
-              <p class="updated-note" id="updated-note">No estimate has been loaded yet.</p>
-            </article>
           </aside>
         </div>
 
@@ -111,11 +100,11 @@
 
         <footer class="analysis-footer">
           <a href="home.html">← Back to dashboard</a>
-          <span>Numbers are estimates and can change as sources are updated.</span>
+          <span>Numbers are estimates and may change over time.</span>
         </footer>
       </section>
     </main>
-    <script src="analysis.js?v=6"></script>
+    <script src="analysis.js?v=7"></script>
       <script src="pwa.js" defer></script>
   </body>
 </html>
