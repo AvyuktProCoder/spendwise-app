@@ -319,7 +319,7 @@ function renderAnalysis() {
   document.querySelector("#parts-total-label").textContent = ["partial", "unavailable"].includes(estimate.estimateStatus)
     && Number.isFinite(estimate.sourcedSubtotal)
     ? "Subtotal of supported parts" : hasRange ? "Estimated making-cost range" : "Estimated total making cost";
-  document.querySelector("#build-caption").textContent = hasRange ? "Includes estimates from preceding models"
+  document.querySelector("#build-caption").textContent = hasRange ? "Includes AI estimates for missing parts"
     : unavailable ? Number.isFinite(estimate.sourcedSubtotal)
       ? "Too many part costs remain unknown" : "No supported manufacturing cost found"
       : estimate.manufacturingTotal == null
@@ -337,7 +337,7 @@ function renderAnalysis() {
   renderComponents(estimate.components);
 
   if (hasRange) {
-    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes preceding-model estimates';
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes AI estimates';
     document.querySelector("#data-status").classList.remove("is-loaded");
   } else if (unavailable) {
     document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Manufacturing cost unavailable';
