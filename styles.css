@@ -111,6 +111,7 @@ a:hover {
 
 .brand svg {
   width: 25px;
+  height: 25px;
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
@@ -699,6 +700,18 @@ select:focus {
 
 .dashboard-topbar { margin-bottom: clamp(38px, 7vw, 68px); }
 .dashboard-brand { margin: 0; color: var(--text); text-decoration: none; }
+.brand-mark {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--accent);
+  border: 1px solid rgba(105, 233, 208, 0.28);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(105, 233, 208, 0.12), rgba(140, 120, 255, 0.12));
+}
+.brand-mark svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
 
 .profile-button {
   width: 42px;
@@ -1132,6 +1145,39 @@ select:focus {
 }
 
 /* Product analysis */
+.analysis-loading[hidden] { display: none; }
+.analysis-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(8, 11, 17, 0.94);
+  backdrop-filter: blur(12px);
+}
+.analysis-loading-card {
+  width: min(100%, 420px);
+  padding: clamp(28px, 6vw, 42px);
+  border: 1px solid rgba(105, 233, 208, 0.22);
+  border-radius: 24px;
+  background: linear-gradient(145deg, #15212b, #101522);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+.analysis-loading-spinner {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 26px;
+  border: 3px solid rgba(105, 233, 208, 0.18);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: analysis-spin 900ms linear infinite;
+}
+.analysis-loading-card h2 { margin: 9px 0 10px; color: var(--text); font: 800 1.45rem/1.25 "Manrope", sans-serif; }
+.analysis-loading-card > p:last-child { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+@keyframes analysis-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .analysis-loading-spinner { animation: none; } }
 .analysis-shell { padding-block: clamp(24px, 5vw, 58px); align-items: flex-start; }
 .analysis-card { width: min(100%, 900px); padding: clamp(24px, 5vw, 46px); }
 .analysis-topbar { margin-bottom: clamp(34px, 6vw, 56px); }
