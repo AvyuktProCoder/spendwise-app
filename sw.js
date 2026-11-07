@@ -1,4 +1,4 @@
-const CACHE_NAME = "spendwise-shell-v7";
+const CACHE_NAME = "spendwise-shell-v9";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -19,6 +19,8 @@ const APP_FILES = [
   "./apple-touch-icon.png",
   "./icons/spendwise-192.png",
   "./icons/spendwise-512.png",
+  "./icons/spendwise-mark.svg",
+  "./icons/spendwise-icon.svg",
 ];
 
 self.addEventListener("install", (event) => {
