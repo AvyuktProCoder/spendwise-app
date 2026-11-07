@@ -352,6 +352,10 @@ renderAnalysis();
 
 async function loadProductResearch() {
   const dataStatus = document.querySelector("#data-status");
+  const loadingScreen = document.querySelector("#analysis-loading");
+  const analysisMain = document.querySelector("#analysis-main");
+  loadingScreen.hidden = false;
+  analysisMain.setAttribute("aria-busy", "true");
   dataStatus.innerHTML = '<span aria-hidden="true"></span> Researching product…';
   dataStatus.classList.remove("is-loaded");
   const startedAt = Date.now();
@@ -388,6 +392,8 @@ async function loadProductResearch() {
   } finally {
     clearTimeout(timeout);
     clearInterval(progress);
+    loadingScreen.hidden = true;
+    analysisMain.removeAttribute("aria-busy");
   }
 }
 
