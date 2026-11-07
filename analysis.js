@@ -313,12 +313,15 @@ function renderAnalysis() {
   document.querySelector("#price-difference").textContent = hasRange && Number.isFinite(estimate.retailPrice)
     ? formatRange({ min: estimate.retailPrice - estimate.manufacturingCostRange.max,
       max: estimate.retailPrice - estimate.manufacturingCostRange.min }) : formatMoney(difference);
-  document.querySelector("#parts-total").textContent = estimate.estimateStatus === "partial"
+  document.querySelector("#parts-total").textContent = ["partial", "unavailable"].includes(estimate.estimateStatus)
+    && Number.isFinite(estimate.sourcedSubtotal)
     ? formatMoney(estimate.sourcedSubtotal) : makingCost;
-  document.querySelector("#parts-total-label").textContent = estimate.estimateStatus === "partial"
+  document.querySelector("#parts-total-label").textContent = ["partial", "unavailable"].includes(estimate.estimateStatus)
+    && Number.isFinite(estimate.sourcedSubtotal)
     ? "Subtotal of supported parts" : hasRange ? "Estimated making-cost range" : "Estimated total making cost";
-  document.querySelector("#build-caption").textContent = hasRange ? "Includes AI estimates for missing parts"
-    : unavailable ? "No supported manufacturing cost found"
+  document.querySelector("#build-caption").textContent = hasRange ? "Includes estimates from preceding models"
+    : unavailable ? Number.isFinite(estimate.sourcedSubtotal)
+      ? "Too many part costs remain unknown" : "No supported manufacturing cost found"
       : estimate.manufacturingTotal == null
         ? estimate.updatedAt ? "Only a partial cost breakdown is available" : "Finding an approximate cost"
         : "Approximate cost of parts and assembly";
@@ -334,7 +337,7 @@ function renderAnalysis() {
   renderComponents(estimate.components);
 
   if (hasRange) {
-    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes AI estimates';
+    document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Range includes preceding-model estimates';
     document.querySelector("#data-status").classList.remove("is-loaded");
   } else if (unavailable) {
     document.querySelector("#data-status").innerHTML = '<span aria-hidden="true"></span> Manufacturing cost unavailable';
