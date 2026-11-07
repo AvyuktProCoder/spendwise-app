@@ -12,14 +12,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body class="dashboard-page analysis-page">
-    <main class="app-shell analysis-shell">
+    <div class="analysis-loading" id="analysis-loading" role="status" aria-live="polite" hidden>
+      <div class="analysis-loading-card">
+        <div class="analysis-loading-spinner" aria-hidden="true"></div>
+        <p class="section-kicker">SPENDWISE IS WORKING</p>
+        <h2>Analyzing your product</h2>
+        <p>Product analysis takes time. Please wait while we gather the details.</p>
+      </div>
+    </div>
+    <main class="app-shell analysis-shell" id="analysis-main">
       <section class="auth-card analysis-card" aria-labelledby="analysis-title">
         <header class="dashboard-topbar analysis-topbar">
           <a class="brand dashboard-brand" href="home.html" aria-label="SpendWise dashboard">
-            <span class="brand-mark" aria-hidden="true"><span class="mark-stem"></span><span class="mark-top"></span><span class="mark-bottom"></span></span>
+            <span class="brand-mark"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M34 14c-2.1-2.2-5.8-3.5-10-3.5-6.7 0-10.8 2.8-10.8 7.2 0 4.3 3.6 6.3 10.6 7.6 6.9 1.2 10.8 3.1 10.8 7.5 0 4.7-4.5 7.7-11.1 7.7-4.6 0-8.7-1.4-11.4-4.1"/><path d="M24 5.5v37"/></svg></span>
             <span>SpendWise</span>
           </a>
           <a class="back-to-dashboard" href="home.html"><span aria-hidden="true">←</span> Dashboard</a>
@@ -104,7 +112,7 @@
         </footer>
       </section>
     </main>
-    <script src="analysis.js?v=7"></script>
+    <script src="analysis.js?v=8"></script>
       <script src="pwa.js" defer></script>
   </body>
 </html>
