@@ -11,16 +11,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=7" />
+    <link rel="stylesheet" href="styles.css?v=13" />
   </head>
   <body class="dashboard-page">
     <main class="app-shell dashboard-shell">
       <section class="auth-card home-card" aria-labelledby="home-title">
         <header class="dashboard-topbar">
           <a class="brand dashboard-brand" href="home.html" aria-label="SpendWise home">
-            <span class="brand-mark" aria-hidden="true">
-              <span class="mark-stem"></span><span class="mark-top"></span><span class="mark-bottom"></span>
-            </span>
+            <span class="brand-mark"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M34 14c-2.1-2.2-5.8-3.5-10-3.5-6.7 0-10.8 2.8-10.8 7.2 0 4.3 3.6 6.3 10.6 7.6 6.9 1.2 10.8 3.1 10.8 7.5 0 4.7-4.5 7.7-11.1 7.7-4.6 0-8.7-1.4-11.4-4.1"/><path d="M24 5.5v37"/></svg></span>
             <span>SpendWise</span>
           </a>
           <a class="profile-button" href="profile.html" aria-label="View your profile"><span aria-hidden="true">S</span></a>
@@ -96,6 +94,7 @@
         <section class="recent-section" id="recent-activity" aria-labelledby="recent-title">
           <div class="section-heading">
             <div><p class="section-kicker">PICK UP WHERE YOU LEFT OFF</p><h2 id="recent-title">Recent activity</h2></div>
+            <a class="text-link" href="activity.html">See all activity →</a>
           </div>
           <div class="recent-card" id="recent-card">
             <span class="recent-symbol" aria-hidden="true">↗</span>
@@ -106,12 +105,13 @@
 
         <nav class="dashboard-nav" aria-label="Dashboard navigation">
           <a class="active" href="home.html" aria-current="page"><span aria-hidden="true">⌂</span>Home</a>
-          <a href="#recent-activity"><span aria-hidden="true">◇</span>Activity</a>
+          <a href="activity.html"><span aria-hidden="true">◇</span>Activity</a>
           <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
         </nav>
       </section>
     </main>
-    <script src="home.js"></script>
+    <script src="activity-store.js"></script>
+    <script src="home.js?v=2"></script>
       <script src="pwa.js" defer></script>
   </body>
 </html>

@@ -19,10 +19,15 @@
 */
 
 const params = new URLSearchParams(window.location.search);
+const historyId = params.get("history");
+const historyMode = historyId !== null;
+const historyEntry = historyMode ? SpendWiseActivity.get(historyId) : null;
+const activityId = params.get("activity");
 const analysisApiUrl = "https://spendwise-api.avyuktnjain.workers.dev/analyze";
 const profile = readStoredJson("spendwise_profile") || {};
 const recentSearch = readStoredJson("spendwise_recent_search") || {};
-const requestedProduct = params.get("product") || recentSearch.product || "Your product";
+const requestedProduct = historyMode ? historyEntry?.product || "Saved search"
+  : params.get("product") || recentSearch.product || "Your product";
 const countryNames = {
   IN: "India", US: "United States", GB: "United Kingdom", CA: "Canada", AU: "Australia",
   DE: "Germany", FR: "France", JP: "Japan", CN: "China", SG: "Singapore",
@@ -36,13 +41,15 @@ const countryCoordinates = {
   MX: [23.6345, -102.5528], KR: [35.9078, 127.7669], ZA: [-30.5595, 22.9375], NL: [52.1326, 5.2913],
   IT: [41.8719, 12.5674], ES: [40.4637, -3.7492], SE: [60.1282, 18.6435], NZ: [-40.9006, 174.886],
 };
-const selectedCountry = params.get("country") || recentSearch.country || localStorage.getItem("spendwise_search_country") || "";
+const selectedCountry = historyMode ? historyEntry?.country || ""
+  : params.get("country") || recentSearch.country || localStorage.getItem("spendwise_search_country") || "";
 const marketCurrencies = {
   IN: "INR", US: "USD", GB: "GBP", CA: "CAD", AU: "AUD", DE: "EUR", FR: "EUR", JP: "JPY",
   CN: "CNY", SG: "SGD", AE: "AED", BR: "BRL", MX: "MXN", KR: "KRW", ZA: "ZAR",
   NL: "EUR", IT: "EUR", ES: "EUR", SE: "SEK", NZ: "NZD",
 };
-const currency = params.get("currency") || marketCurrencies[selectedCountry] || profile.currency || "INR";
+const currency = historyMode ? historyEntry?.result?.currency || marketCurrencies[selectedCountry] || "INR"
+  : params.get("currency") || marketCurrencies[selectedCountry] || profile.currency || "INR";
 const currencyLocale = { INR: "en-IN", USD: "en-US", GBP: "en-GB", EUR: "de-DE", AUD: "en-AU", CAD: "en-CA" };
 const VALUE_FOR_MONEY_MARGIN_THRESHOLD = 28.77;
 
@@ -92,13 +99,17 @@ function hasUsableEstimate(data) {
 function cacheLifetime(data) {
   return hasManufacturingRange(data) ? 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
 }
-const hasFreshEstimate = storedEstimate && storedEstimate.currency === currency
+const hasFreshEstimate = !historyMode && storedEstimate && storedEstimate.currency === currency
   && storedEstimate.countryCode === selectedCountry
   && Number.isFinite(storedEstimate.cacheExpiresAt)
   && storedEstimate.cacheExpiresAt > Date.now()
   && storedEstimate.cacheExpiresAt <= Date.now() + cacheLifetime(storedEstimate)
   && hasUsableEstimate(storedEstimate);
 if (hasFreshEstimate) Object.assign(estimate, storedEstimate);
+if (historyMode && historyEntry?.result && !SpendWiseActivity.isExpired(historyEntry)) {
+  Object.assign(estimate, historyEntry.result);
+}
+if (activityId && hasFreshEstimate) SpendWiseActivity.update(activityId, "saved", estimate);
 
 function saveResearchResult() {
   if (!hasUsableEstimate(estimate)) return;
@@ -352,6 +363,15 @@ function renderAnalysis() {
 }
 
 renderAnalysis();
+if (historyMode && (!historyEntry?.result || SpendWiseActivity.isExpired(historyEntry))) {
+  const timedOut = historyEntry && SpendWiseActivity.isExpired(historyEntry);
+  const message = timedOut
+    ? "Sorry, this result has timed out after seven days. Start a new search from the dashboard if you want updated information."
+    : "This search has no saved result. Start a new search from the dashboard if you want an analysis.";
+  document.querySelector("#data-status").textContent = timedOut ? "Saved result timed out" : "No saved result";
+  document.querySelector("#analysis-intro").textContent = message;
+  document.querySelector("#manufacturing-explanation").textContent = message;
+}
 
 async function loadProductResearch() {
   const dataStatus = document.querySelector("#data-status");
@@ -385,9 +405,11 @@ async function loadProductResearch() {
     if (!response.ok) throw new Error(result.error || "Research request failed.");
 
     Object.assign(estimate, result, { countryCode: selectedCountry, currency });
+    if (activityId) SpendWiseActivity.update(activityId, "saved", estimate);
     saveResearchResult();
     renderAnalysis();
   } catch (error) {
+    if (activityId) SpendWiseActivity.update(activityId, "failed");
     dataStatus.innerHTML = '<span aria-hidden="true"></span> Research unavailable';
     dataStatus.title = error.name === "AbortError"
       ? "The research request took too long. Please try again with the exact product model."
@@ -400,4 +422,4 @@ async function loadProductResearch() {
   }
 }
 
-if (!hasFreshEstimate && requestedProduct !== "Your product" && selectedCountry) loadProductResearch();
+if (!historyMode && !hasFreshEstimate && requestedProduct !== "Your product" && selectedCountry) loadProductResearch();

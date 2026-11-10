@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="theme-color" content="#080b11" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity | SpendWise</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=13" />
+  </head>
+  <body class="dashboard-page">
+    <main class="app-shell dashboard-shell">
+      <section class="auth-card home-card" aria-labelledby="activity-title">
+        <header class="dashboard-topbar">
+          <a class="brand dashboard-brand" href="home.html" aria-label="SpendWise home">
+            <span class="brand-mark"><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M34 14c-2.1-2.2-5.8-3.5-10-3.5-6.7 0-10.8 2.8-10.8 7.2 0 4.3 3.6 10.6 7.6 6.9 1.2 10.8 3.1 10.8 7.5 0 4.7-4.5 7.7-11.1 7.7-4.6 0-8.7-1.4-11.4-4.1"/><path d="M24 5.5v37"/></svg></span>
+            <span>SpendWise</span>
+          </a>
+          <a class="profile-button" href="profile.html" aria-label="View your profile"><span aria-hidden="true">S</span></a>
+        </header>
+        <section class="dashboard-hero activity-hero">
+          <div>
+            <p class="eyebrow">YOUR ACTIVITY</p>
+            <h1 id="activity-title">Product searches</h1>
+            <p class="home-copy">Open a saved breakdown without starting another search. Results are available for seven days.</p>
+          </div>
+        </section>
+        <section class="activity-list" id="activity-list" aria-label="Search history"></section>
+        <nav class="dashboard-nav" aria-label="Dashboard navigation">
+          <a href="home.html"><span aria-hidden="true">⌂</span>Home</a>
+          <a class="active" href="activity.html" aria-current="page"><span aria-hidden="true">◇</span>Activity</a>
+          <a href="profile.html"><span aria-hidden="true">○</span>Profile</a>
+        </nav>
+      </section>
+    </main>
+    <script src="activity-store.js"></script>
+    <script src="activity.js"></script>
+    <script src="pwa.js" defer></script>
+  </body>
+</html>

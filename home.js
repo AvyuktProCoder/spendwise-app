@@ -51,18 +51,18 @@ categories.forEach((category) => {
 
 function renderRecentActivity(item) {
   if (!item || !item.product) return;
-  const date = new Date(item.date);
+  const date = new Date(item.createdAt);
   const readableDate = Number.isNaN(date.getTime()) ? "Recently" : new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
   recentCard.classList.add("has-activity");
   recentCard.querySelector("h3").textContent = item.product;
-  recentCard.querySelector("p").textContent = `${readableDate} · Ready for a deeper cost breakdown`;
-  recentAction.textContent = "Open";
+  recentCard.querySelector("p").textContent = `${readableDate} · ${SpendWiseActivity.isExpired(item) ? "Result timed out" : item.result ? "Saved result" : "No saved result yet"}`;
+  recentAction.textContent = "View activity";
 }
 
 const savedSearch = readStoredJson("spendwise_recent_search");
 if (savedSearch?.country) countryInput.value = savedSearch.country;
 else if (profile.country) countryInput.value = profile.country;
-renderRecentActivity(savedSearch);
+renderRecentActivity(SpendWiseActivity.list()[0]);
 
 searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -83,15 +83,14 @@ searchForm.addEventListener("submit", (event) => {
   localStorage.setItem("spendwise_search_country", country);
   const usageCount = Number(localStorage.getItem("spendwise_analysis_count")) || 0;
   localStorage.setItem("spendwise_analysis_count", String(usageCount + 1));
-  renderRecentActivity(recentItem);
-  window.location.href = `analysis.html?product=${encodeURIComponent(product)}&country=${encodeURIComponent(country)}`;
+  const activityId = SpendWiseActivity.start(product, country);
+  renderRecentActivity(SpendWiseActivity.get(activityId));
+  window.location.href = `analysis.html?product=${encodeURIComponent(product)}&country=${encodeURIComponent(country)}&activity=${encodeURIComponent(activityId)}`;
 });
 
 recentAction.addEventListener("click", () => {
-  const recentItem = readStoredJson("spendwise_recent_search");
-  if (recentItem && recentItem.product) {
-    const country = recentItem.country || localStorage.getItem("spendwise_search_country") || "";
-    window.location.href = `analysis.html?product=${encodeURIComponent(recentItem.product)}&country=${encodeURIComponent(country)}`;
+  if (SpendWiseActivity.list().length) {
+    window.location.href = "activity.html";
     return;
   }
   productInput.scrollIntoView({ behavior: "smooth", block: "center" });

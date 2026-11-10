@@ -1,4 +1,4 @@
-const CACHE_NAME = "spendwise-shell-v10";
+const CACHE_NAME = "spendwise-shell-v11";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const APP_FILES = [
   "./profile-onboarding.html",
   "./profile.html",
   "./home.html",
+  "./activity.html",
   "./analysis.html",
   "./how-it-works.html",
   "./styles.css",
@@ -13,6 +14,8 @@ const APP_FILES = [
   "./onboarding.js",
   "./profile.js",
   "./home.js",
+  "./activity-store.js",
+  "./activity.js",
   "./analysis.js",
   "./tutorial.js",
   "./manifest.webmanifest",
