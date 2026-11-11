@@ -70,10 +70,10 @@ const estimate = {
 };
 
 const resultCacheStorageKey = "spendwise_research_cache_v6";
+const RESULT_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const resultCacheKey = JSON.stringify([requestedProduct.trim().replace(/\s+/g, " ").toLowerCase(), selectedCountry, currency]);
 const savedResults = readStoredJson(resultCacheStorageKey);
 const storedEntry = Array.isArray(savedResults) ? savedResults.find((entry) => entry?.key === resultCacheKey) : null;
-const storedEstimate = storedEntry?.estimate;
 function hasCompleteEstimate(data) {
   return data?.schemaVersion === 4 && data.breakdownComplete === true
     && Number.isFinite(data.manufacturingTotal) && data.manufacturingTotal > 0
@@ -92,39 +92,47 @@ function hasManufacturingRange(data) {
     && range.min === data.sourcedSubtotal && Number.isFinite(data.estimatedAddition)
     && Math.abs(range.max - range.min - data.estimatedAddition) < 0.02;
 }
-function hasUsableEstimate(data) {
-  return hasCompleteEstimate(data) || (hasManufacturingRange(data)
-    && Number.isFinite(data.retailPrice) && data.retailPrice >= 0);
+function researchExpiry(data) {
+  const updated = Date.parse(data?.updatedAt || "");
+  return Number.isFinite(updated) && updated <= Date.now() + 60 * 1000
+    ? updated + RESULT_WEEK_MS : 0;
 }
-function cacheLifetime(data) {
-  return hasManufacturingRange(data) ? 60 * 60 * 1000 : 6 * 60 * 60 * 1000;
+function hasCacheableResearch(data) {
+  return data?.schemaVersion === 4 && data.currency === currency
+    && data.countryCode === selectedCountry && researchExpiry(data) > Date.now()
+    && Array.isArray(data.components)
+    && ["sourced", "range", "partial", "unavailable"].includes(data.estimateStatus)
+    && (hasCompleteEstimate(data) || hasManufacturingRange(data)
+      || ["sourced", "partial", "unavailable"].includes(data.estimateStatus));
 }
-const hasFreshEstimate = !historyMode && storedEstimate && storedEstimate.currency === currency
-  && storedEstimate.countryCode === selectedCountry
-  && Number.isFinite(storedEstimate.cacheExpiresAt)
-  && storedEstimate.cacheExpiresAt > Date.now()
-  && storedEstimate.cacheExpiresAt <= Date.now() + cacheLifetime(storedEstimate)
-  && hasUsableEstimate(storedEstimate);
-if (hasFreshEstimate) Object.assign(estimate, storedEstimate);
+const activityEstimate = !historyMode && SpendWiseActivity.list().find((entry) =>
+  !SpendWiseActivity.isExpired(entry) && entry.country === selectedCountry
+  && entry.product.trim().replace(/\s+/g, " ").toLowerCase()
+    === requestedProduct.trim().replace(/\s+/g, " ").toLowerCase()
+  && hasCacheableResearch(entry.result))?.result;
+const cachedEstimate = [storedEntry?.estimate, activityEstimate]
+  .filter(hasCacheableResearch)
+  .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))[0];
+const hasFreshEstimate = !historyMode && Boolean(cachedEstimate);
+if (hasFreshEstimate) Object.assign(estimate, cachedEstimate, { cacheExpiresAt: researchExpiry(cachedEstimate) });
 if (historyMode && historyEntry?.result && !SpendWiseActivity.isExpired(historyEntry)) {
   Object.assign(estimate, historyEntry.result);
 }
 if (activityId && hasFreshEstimate) SpendWiseActivity.update(activityId, "saved", estimate);
 
 function saveResearchResult() {
-  if (!hasUsableEstimate(estimate)) return;
+  if (!hasCacheableResearch(estimate)) return;
   try {
     const entries = readStoredJson(resultCacheStorageKey);
     const freshEntries = (Array.isArray(entries) ? entries : []).filter((entry) =>
-      entry?.key !== resultCacheKey && entry?.estimate?.cacheExpiresAt > Date.now());
-    // Preserve the original expiry when a result came from the Worker cache.
-    const cacheExpiresAt = Number.isFinite(estimate.cacheExpiresAt)
-      ? Math.min(estimate.cacheExpiresAt, Date.now() + cacheLifetime(estimate))
-      : Date.now() + cacheLifetime(estimate);
+      entry?.key !== resultCacheKey && researchExpiry(entry?.estimate) > Date.now());
+    // Reusing a result never starts a new seven-day period.
+    const cacheExpiresAt = researchExpiry(estimate);
     freshEntries.unshift({ key: resultCacheKey, estimate: { ...estimate, cacheExpiresAt } });
     localStorage.setItem(resultCacheStorageKey, JSON.stringify(freshEntries.slice(0, 20)));
   } catch { /* Storage may be full or disabled; the current result still displays. */ }
 }
+if (hasFreshEstimate) saveResearchResult();
 
 function readStoredJson(key) {
   try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
