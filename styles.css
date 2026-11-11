@@ -690,7 +690,6 @@ select:focus {
 
 .dashboard-topbar,
 .dashboard-hero,
-.section-heading,
 .focus-meta,
 .dashboard-nav {
   display: flex;
@@ -824,10 +823,6 @@ select:focus {
 .search-button:active { transform: translateY(0); }
 .search-button:focus-visible { outline: 3px solid rgba(105, 233, 208, 0.25); outline-offset: 3px; }
 .search-status { min-height: 20px; margin: 8px 4px 0; color: var(--muted); font-size: 0.78rem; }
-.recent-section { margin-top: 34px; }
-.section-heading { gap: 16px; margin-bottom: 14px; }
-.section-heading h2 { margin: 2px 0 0; font: 700 1.18rem "Manrope", sans-serif; color: var(--text); }
-
 .section-kicker, .panel-label {
   margin: 0;
   color: var(--accent);
@@ -870,24 +865,6 @@ select:focus {
 .focus-meta a, .text-link { color: var(--accent); font-size: 0.78rem; font-weight: 700; text-decoration: none; }
 .text-link { display: inline-block; margin-top: 22px; }
 
-.recent-card {
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  gap: 15px;
-  min-height: 82px;
-  padding: 15px 17px;
-  border: 1px dashed rgba(173, 189, 216, 0.18);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.018);
-}
-
-.recent-card.has-activity { border-style: solid; border-color: rgba(105, 233, 208, 0.2); background: rgba(105, 233, 208, 0.035); }
-.recent-symbol { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; color: var(--accent); background: rgba(105, 233, 208, 0.08); font-size: 1.1rem; }
-.recent-card h3 { margin: 0 0 3px; color: var(--text); font: 700 0.92rem "Manrope", sans-serif; }
-.recent-card p { margin: 0; color: var(--muted); font-size: 0.78rem; }
-
-.recent-section .section-heading .text-link { margin: 0; }
 .activity-hero { margin-bottom: 28px; }
 .activity-list { display: grid; gap: 12px; }
 .activity-row { display: flex; align-items: center; justify-content: space-between; gap: 20px;
@@ -901,16 +878,6 @@ select:focus {
 .activity-arrow { flex: 0 0 auto; color: var(--accent); font-size: 1.3rem; }
 .activity-empty { padding: 24px; border: 1px dashed rgba(173, 189, 216, 0.2); border-radius: 17px;
   color: var(--muted); line-height: 1.6; }
-
-.small-action {
-  padding: 9px 13px;
-  border: 1px solid rgba(105, 233, 208, 0.24);
-  border-radius: 11px;
-  color: var(--accent);
-  background: rgba(105, 233, 208, 0.07);
-  font: 700 0.76rem "DM Sans", sans-serif;
-  cursor: pointer;
-}
 
 .dashboard-nav {
   display: grid;
@@ -987,8 +954,6 @@ select:focus {
   .search-control { grid-template-columns: 22px 1fr; }
   .search-button { grid-column: 1 / -1; width: 100%; }
   .dashboard-grid { grid-template-columns: 1fr; }
-  .recent-card { grid-template-columns: 42px 1fr; }
-  .small-action { grid-column: 1 / -1; width: 100%; }
 }
 
 @media (max-width: 430px) {
