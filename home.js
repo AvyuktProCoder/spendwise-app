@@ -2,7 +2,6 @@ const searchForm = document.querySelector("#product-search");
 const productInput = document.querySelector("#product-query");
 const countryInput = document.querySelector("#search-country");
 const searchStatus = document.querySelector("#search-status");
-const chipContainer = document.querySelector("#interest-chips");
 const profileSummary = document.querySelector("#profile-summary");
 const goalTitle = document.querySelector("#goal-title");
 const goalCopy = document.querySelector("#goal-copy");
@@ -10,7 +9,6 @@ const currencyCopy = document.querySelector("#currency-copy");
 const recentCard = document.querySelector("#recent-card");
 const recentAction = document.querySelector("#recent-action");
 
-const defaultCategories = ["Phones", "Gaming", "Fashion", "Headphones"];
 const currencyDetails = { INR: "₹ INR", USD: "$ USD", EUR: "€ EUR", GBP: "£ GBP" };
 const goalDetails = {
   understand: { title: "Understand what you are paying for", copy: "Break prices into parts, services, and brand costs before deciding what feels fair." },
@@ -33,21 +31,6 @@ goalTitle.textContent = selectedGoal.title;
 goalCopy.textContent = selectedGoal.copy;
 currencyCopy.textContent = selectedCurrency;
 profileSummary.textContent = `${selectedGoal.title} · ${profile.currency || "INR"}`;
-
-const savedInterests = Array.isArray(profile.interests) ? profile.interests : [];
-const categories = [...new Set([...savedInterests, ...defaultCategories])].slice(0, 4);
-categories.forEach((category) => {
-  const chip = document.createElement("button");
-  chip.className = "interest-chip";
-  chip.type = "button";
-  chip.textContent = category;
-  chip.addEventListener("click", () => {
-    productInput.value = category;
-    productInput.focus();
-    searchStatus.textContent = `Try entering a specific ${category.toLowerCase()} product.`;
-  });
-  chipContainer.appendChild(chip);
-});
 
 function renderRecentActivity(item) {
   if (!item || !item.product) return;
