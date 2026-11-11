@@ -6,8 +6,6 @@ const profileSummary = document.querySelector("#profile-summary");
 const goalTitle = document.querySelector("#goal-title");
 const goalCopy = document.querySelector("#goal-copy");
 const currencyCopy = document.querySelector("#currency-copy");
-const recentCard = document.querySelector("#recent-card");
-const recentAction = document.querySelector("#recent-action");
 
 const currencyDetails = { INR: "₹ INR", USD: "$ USD", EUR: "€ EUR", GBP: "£ GBP" };
 const goalDetails = {
@@ -32,20 +30,9 @@ goalCopy.textContent = selectedGoal.copy;
 currencyCopy.textContent = selectedCurrency;
 profileSummary.textContent = `${selectedGoal.title} · ${profile.currency || "INR"}`;
 
-function renderRecentActivity(item) {
-  if (!item || !item.product) return;
-  const date = new Date(item.createdAt);
-  const readableDate = Number.isNaN(date.getTime()) ? "Recently" : new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
-  recentCard.classList.add("has-activity");
-  recentCard.querySelector("h3").textContent = item.product;
-  recentCard.querySelector("p").textContent = `${readableDate} · ${SpendWiseActivity.isExpired(item) ? "Result timed out" : item.result ? "Saved result" : "No saved result yet"}`;
-  recentAction.textContent = "View activity";
-}
-
 const savedSearch = readStoredJson("spendwise_recent_search");
 if (savedSearch?.country) countryInput.value = savedSearch.country;
 else if (profile.country) countryInput.value = profile.country;
-renderRecentActivity(SpendWiseActivity.list()[0]);
 
 searchForm.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -67,15 +54,5 @@ searchForm.addEventListener("submit", (event) => {
   const usageCount = Number(localStorage.getItem("spendwise_analysis_count")) || 0;
   localStorage.setItem("spendwise_analysis_count", String(usageCount + 1));
   const activityId = SpendWiseActivity.start(product, country);
-  renderRecentActivity(SpendWiseActivity.get(activityId));
   window.location.href = `analysis.html?product=${encodeURIComponent(product)}&country=${encodeURIComponent(country)}&activity=${encodeURIComponent(activityId)}`;
-});
-
-recentAction.addEventListener("click", () => {
-  if (SpendWiseActivity.list().length) {
-    window.location.href = "activity.html";
-    return;
-  }
-  productInput.scrollIntoView({ behavior: "smooth", block: "center" });
-  productInput.focus();
 });
